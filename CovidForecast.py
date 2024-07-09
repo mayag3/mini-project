@@ -1,0 +1,808 @@
+from tkinter import messagebox
+from tkinter import *
+from tkinter import simpledialog
+import tkinter
+from tkinter import filedialog
+from tkinter.filedialog import askopenfilename
+import numpy as np 
+import pandas as pd 
+from sklearn.preprocessing import MinMaxScaler
+from math import sqrt
+from sklearn.svm import SVR
+import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+import seaborn as sns
+from sklearn.linear_model import LinearRegression
+from sklearn import linear_model
+from statsmodels.tsa.api import ExponentialSmoothing, SimpleExpSmoothing
+
+from keras.models import Sequential
+from keras.layers import Dense
+from keras.layers import LSTM
+from math import sqrt
+
+from sklearn.metrics import mean_absolute_error
+from sklearn.metrics import mean_squared_error
+
+main = tkinter.Tk()
+main.title("Sentiment Analysis of Lockdown in India During COVID19 A Case Study") #designing main screen
+main.geometry("1300x1200")
+
+global filename
+global actual
+global predicted
+global confirm_trainX, confirm_testX
+global recover_trainX, recover_testX
+global death_trainX, death_testX
+global confirm_scaler_value,death_scaler_value,recover_scaler_value
+global rawValues_confirm,rawValues_death,rawValues_recover
+act_death = []
+predict_death = []
+act_recover = []
+predict_recover = []
+act_confirm = []
+predict_confirm = []
+global confirm,death,recover
+global svm_erro,lr_error,lasso_error,es_error,lstm_error
+
+def difference(datasets, intervals=1):
+    difference = list()
+    for i in range(intervals, len(datasets)):
+        values = datasets[i] - datasets[i - intervals]
+        difference.append(values)
+    return pd.Series(difference)
+
+def convertDataToTimeseries(dataset, lagvalue=1):
+    dframe = pd.DataFrame(dataset)
+    cols = [dframe.shift(i) for i in range(1, lagvalue+1)]
+    cols.append(dframe)
+    dframe = pd.concat(cols, axis=1)
+    dframe.fillna(0, inplace=True)
+    return dframe
+
+
+def scaleDataset(trainX, testX):
+    scalerValue = MinMaxScaler(feature_range=(-1, 1))
+    scalerValue = scalerValue.fit(trainX)
+    trainX = trainX.reshape(trainX.shape[0], trainX.shape[1])
+    trainX = scalerValue.transform(trainX)
+    testX = testX.reshape(testX.shape[0], testX.shape[1])
+    testX = scalerValue.transform(testX)
+    return scalerValue, trainX, testX
+
+def upload(): #function to upload tweeter profile
+    global filename
+    global confirm,death,recover
+        
+    filename = filedialog.askopenfilename(initialdir="Dataset")
+    cdataset = pd.read_csv('Dataset/covid_19_data.csv',nrows=10000,usecols=['ObservationDate', 'Confirmed'])
+    ddataset = pd.read_csv('Dataset/covid_19_data.csv',nrows=10000,usecols=['ObservationDate', 'Deaths'])
+    rdataset = pd.read_csv('Dataset/covid_19_data.csv',nrows=10000,usecols=['ObservationDate', 'Recovered'])
+    cdataset.to_csv('temp/confirm.csv',index=False)
+    ddataset.to_csv('temp/death.csv',index=False)
+    rdataset.to_csv('temp/recover.csv',index=False)
+
+    
+    confirm = pd.read_csv('temp/confirm.csv', header=0, parse_dates=[0], index_col=0, squeeze=True)
+    death = pd.read_csv('temp/death.csv', header=0, parse_dates=[0], index_col=0, squeeze=True)
+    recover = pd.read_csv('temp/recover.csv', header=0, parse_dates=[0], index_col=0, squeeze=True)
+    text.delete('1.0', END)
+    text.insert(END,filename+" loaded\n");
+
+    confirm1 = pd.read_csv('temp/confirm.csv')
+    death1 = pd.read_csv('temp/death.csv')
+    recover1 = pd.read_csv('temp/recover.csv')
+    
+    
+    fig, ax = plt.subplots(3)
+    fig.suptitle('Confirmed, Death & Recovered Cases Graph')
+    ax[0].plot(confirm1['ObservationDate'].copy(),confirm1['Confirmed'].copy())
+    ax[1].plot(death1['ObservationDate'].copy(),death1['Deaths'].copy())
+    ax[2].plot(recover1['ObservationDate'].copy(),recover1['Recovered'].copy())
+    #ax.xaxis_date()
+    #fig.autofmt_xdate()
+    plt.show()
+    
+
+def preprocess():
+    global confirm,death,recover
+    global confirm_trainX, confirm_testX
+    global recover_trainX, recover_testX
+    global death_trainX, death_testX
+    global confirm_scaler_value,death_scaler_value,recover_scaler_value
+    global rawValues_confirm,rawValues_death,rawValues_recover
+    
+    rawValues_confirm = confirm.values
+    confirm = confirm.values
+    confirm = difference(confirm, 1)
+    confirm = convertDataToTimeseries(confirm, 1)
+    confirm = confirm.values
+    confirm_trainX, confirm_testX = confirm[0:-30], confirm[-30:]
+    confirm_scaler_value, confirm_trainX, confirm_testX = scaleDataset(confirm_trainX, confirm_testX)
+
+    rawValues_death = death.values
+    death = death.values
+    death = difference(death, 1)
+    death = convertDataToTimeseries(death, 1)
+    death = death.values
+    death_trainX, death_testX = death[0:-30], death[-30:]
+    death_scaler_value, death_trainX, death_testX = scaleDataset(death_trainX, death_testX)
+
+    rawValues_recover = recover.values
+    recover = recover.values
+    recover = difference(recover, 1)
+    recover = convertDataToTimeseries(recover, 1)
+    recover = recover.values
+    recover_trainX, recover_testX = recover[0:-30], recover[-30:]
+    recover_scaler_value, recover_trainX, recover_testX = scaleDataset(recover_trainX, recover_testX)
+    text.insert(END,"Total dataset size             : "+str(confirm.shape[0])+"\n");
+    text.insert(END,"Dataset size used for training : "+str(confirm_trainX.shape[0])+"\n");
+    text.insert(END,"Dataset size used for testing  : "+str(confirm_testX.shape[0])+"\n");
+
+def forecastRNN(model, batchSize, testX):
+    testX = testX.reshape(1, len(testX))
+    forecast = model.predict(testX)
+    return forecast[0]
+    
+def inverseDifference(history_data, yhat_data, intervals=1):
+    return yhat_data + history_data[-intervals]
+
+def inverseScale(scalerValue, Xdata, Xvalue):
+    newRow = [x for x in Xdata] + [Xvalue]
+    array = np.array(newRow)
+    array = array.reshape(1, len(array))
+    inverse = scalerValue.inverse_transform(array)
+    return inverse[0, -1]  
+
+
+def runSVM():
+    global svm_error
+    global confirm_trainX, confirm_testX
+    global recover_trainX, recover_testX
+    global death_trainX, death_testX
+    svm_error = 0
+
+    confirm_trainXX, confirm_trainY = confirm_trainX[:, 0:-1], confirm_trainX[:, -1]
+    recover_trainXX, recover_trainY = recover_trainX[:, 0:-1], recover_trainX[:, -1]
+    death_trainXX, death_trainY = death_trainX[:, 0:-1], death_trainX[:, -1]
+
+    confirm_svm = SVR()    
+    confirm_svm.fit(confirm_trainXX, confirm_trainY)
+    predict = confirm_svm.predict(confirm_trainXX)
+    confirm_svm_rmse = mean_squared_error(confirm_trainY,predict, squared=False)
+    svm_error = svm_error + confirm_svm_rmse
+    text.delete('1.0', END)
+    mae = mean_absolute_error(confirm_trainY,predict)
+    mse = mean_squared_error(confirm_trainY,predict)
+    text.insert(END,"Confirmed Cases SVM MAE : "+str(mae)+"\n")
+    text.insert(END,"Confirmed Cases SVM MSE : "+str(mse)+"\n")
+    text.insert(END,"Confirmed Cases SVM Root Mean Square Error : "+str(confirm_svm_rmse)+"\n");
+
+    recover_svm = SVR()    
+    recover_svm.fit(recover_trainXX, recover_trainY)
+    predict = recover_svm.predict(recover_trainXX)
+    recover_svm_rmse = mean_squared_error(recover_trainY,predict, squared=False)
+    svm_error = svm_error + recover_svm_rmse
+    mae = mean_absolute_error(recover_trainY,predict)
+    mse = mean_squared_error(recover_trainY,predict)
+    text.insert(END,"Recovered Cases SVM MAE : "+str(mae)+"\n")
+    text.insert(END,"Recovered Cases SVM MSE : "+str(mse)+"\n")
+    text.insert(END,"Recovered Cases SVM Root Mean Square Error : "+str(recover_svm_rmse)+"\n");
+
+    death_svm = SVR()    
+    death_svm.fit(death_trainXX, death_trainY)
+    predict = death_svm.predict(death_trainXX)
+    death_svm_rmse = mean_squared_error(death_trainY,predict, squared=False)
+    svm_error = svm_error + death_svm_rmse
+    mae = mean_absolute_error(death_trainY,predict)
+    mse = mean_squared_error(death_trainY,predict)
+    text.insert(END,"Death Cases SVM MAE : "+str(mae)+"\n")
+    text.insert(END,"Death Cases SVM MSE : "+str(mse)+"\n")
+    text.insert(END,"Death Cases SVM Root Mean Square Error : "+str(death_svm_rmse)+"\n");
+
+    trainReshaped = confirm_trainX[:, 0].reshape(len(confirm_trainX), 1)
+    confirm_svm.predict(trainReshaped)
+    confirm_prediction_list = list()
+    recover_prediction_list = list()
+    death_prediction_list = list()
+    
+    for i in range(len(confirm_testX)):
+        X, y = confirm_testX[i, 0:-1], confirm_testX[i, -1]
+        yhat = forecastRNN(confirm_svm, 1, X)
+        yhat = inverseScale(confirm_scaler_value, X, yhat)
+        yhat = inverseDifference(rawValues_confirm, yhat, len(confirm_testX)+1-i)
+        confirm_prediction_list.append(yhat)
+        expected = rawValues_confirm[len(confirm_trainX) + i + 1]
+        print('Day=%d, Predicted=%f, Expected=%f' % (i+1, yhat, expected))
+
+    
+    trainReshaped = recover_trainX[:, 0].reshape(len(recover_trainX), 1)
+    recover_svm.predict(trainReshaped)
+    for i in range(len(recover_testX)):
+        X, y = recover_testX[i, 0:-1], recover_testX[i, -1]
+        yhat = forecastRNN(recover_svm, 1, X)
+        yhat = inverseScale(recover_scaler_value, X, yhat)
+        yhat = inverseDifference(rawValues_recover, yhat, len(recover_testX)+1-i)
+        recover_prediction_list.append(yhat)
+        expected = rawValues_recover[len(recover_trainX) + i + 1]
+        print('Day=%d, Predicted=%f, Expected=%f' % (i+1, yhat, expected))
+
+    trainReshaped = death_trainX[:, 0].reshape(len(death_trainX), 1)
+    death_svm.predict(trainReshaped)
+    for i in range(len(death_testX)):
+        X, y = death_testX[i, 0:-1], death_testX[i, -1]
+        yhat = forecastRNN(death_svm, 1, X)
+        yhat = inverseScale(death_scaler_value, X, yhat)
+        yhat = inverseDifference(rawValues_death, yhat, len(death_testX)+1-i)
+        death_prediction_list.append(yhat)
+        expected = rawValues_death[len(death_trainX) + i + 1]
+        print('Day=%d, Predicted=%f, Expected=%f' % (i+1, yhat, expected))
+
+
+    fig, ax = plt.subplots(3)
+    fig.suptitle('Covid19 SVM Forecasting Graph')
+    #ax[0].xlabel('Days')
+    #ax[0].ylabel('Predicted/Actual Forecasting')
+    ax[0].plot(rawValues_confirm[-30:], 'ro-', color = 'red')
+    ax[0].plot(confirm_prediction_list, 'ro-', color = 'green')
+    ax[0].legend(['Actual Confirmed Cases', 'Forecast Confirmed Cases'], loc='upper left')
+
+    #ax[1].xlabel('Days')
+    #ax[1].ylabel('Predicted/Actual Forecasting')
+    ax[1].plot(rawValues_recover[-30:], 'ro-', color = 'red')
+    ax[1].plot(recover_prediction_list, 'ro-', color = 'green')
+    ax[1].legend(['Actual Recovered Cases', 'Forecast Recovered Cases'], loc='upper left')
+
+    #ax[2].xlabel('Days')
+    #ax[2].ylabel('Predicted/Actual Forecasting')
+    ax[2].plot(rawValues_death[-30:], 'ro-', color = 'red')
+    ax[2].plot(death_prediction_list, 'ro-', color = 'green')
+    ax[2].legend(['Actual Death Cases', 'Forecast Death Cases'], loc='upper left')
+    plt.show()
+    
+    
+def runLR():
+    global lr_error
+    global confirm_trainX, confirm_testX
+    global recover_trainX, recover_testX
+    global death_trainX, death_testX
+    lr_error = 0
+
+    confirm_trainXX, confirm_trainY = confirm_trainX[:, 0:-1], confirm_trainX[:, -1]
+    recover_trainXX, recover_trainY = recover_trainX[:, 0:-1], recover_trainX[:, -1]
+    death_trainXX, death_trainY = death_trainX[:, 0:-1], death_trainX[:, -1]
+
+    confirm_lr = LinearRegression()    
+    confirm_lr.fit(confirm_trainXX, confirm_trainY)
+    predict = confirm_lr.predict(confirm_trainXX)
+    confirm_lr_rmse = mean_squared_error(confirm_trainY,predict, squared=False)
+    mae = mean_absolute_error(confirm_trainY,predict)
+    mse = mean_squared_error(confirm_trainY,predict)
+    text.insert(END,"Confirmed Cases Linear Regression MAE : "+str(mae)+"\n")
+    text.insert(END,"Confirmed Cases Linear Regression MSE : "+str(mse)+"\n")
+    lr_error = lr_error + confirm_lr_rmse
+    #text.delete('1.0', END)
+    text.insert(END,"\nConfirmed Cases Linear Regression Root Mean Square Error : "+str(confirm_lr_rmse)+"\n");
+
+    recover_lr = LinearRegression()    
+    recover_lr.fit(recover_trainXX, recover_trainY)
+    predict = recover_lr.predict(recover_trainXX)
+    recover_lr_rmse = mean_squared_error(recover_trainY,predict, squared=False)
+    lr_error = lr_error + recover_lr_rmse
+    mae = mean_absolute_error(recover_trainY,predict)
+    mse = mean_squared_error(recover_trainY,predict)
+    text.insert(END,"Recovered Cases Linear Regression MAE : "+str(mae)+"\n")
+    text.insert(END,"Recovered Cases Linear Regression MSE : "+str(mse)+"\n")
+    text.insert(END,"Recovered Cases Linear Regression Root Mean Square Error : "+str(recover_lr_rmse)+"\n");
+
+    death_lr = LinearRegression()    
+    death_lr.fit(death_trainXX, death_trainY)
+    predict = death_lr.predict(death_trainXX)
+    death_lr_rmse = mean_squared_error(death_trainY,predict, squared=False)
+    mae = mean_absolute_error(death_trainY,predict)
+    mse = mean_squared_error(death_trainY,predict)
+    text.insert(END,"Death Cases Linear Regression MAE : "+str(mae)+"\n")
+    text.insert(END,"Death Cases Linear Regression MSE : "+str(mse)+"\n")
+    lr_error = lr_error + death_lr_rmse
+    text.insert(END,"Death Cases Linear Regression Root Mean Square Error : "+str(death_lr_rmse)+"\n");
+
+    trainReshaped = confirm_trainX[:, 0].reshape(len(confirm_trainX), 1)
+    confirm_lr.predict(trainReshaped)
+    confirm_prediction_list = list()
+    recover_prediction_list = list()
+    death_prediction_list = list()
+    
+    for i in range(len(confirm_testX)):
+        X, y = confirm_testX[i, 0:-1], confirm_testX[i, -1]
+        yhat = forecastRNN(confirm_lr, 1, X)
+        yhat = inverseScale(confirm_scaler_value, X, yhat)
+        yhat = inverseDifference(rawValues_confirm, yhat, len(confirm_testX)+1-i)
+        confirm_prediction_list.append(yhat)
+        expected = rawValues_confirm[len(confirm_trainX) + i + 1]
+        print('Day=%d, Predicted=%f, Expected=%f' % (i+1, yhat, expected))
+
+    
+    trainReshaped = recover_trainX[:, 0].reshape(len(recover_trainX), 1)
+    recover_lr.predict(trainReshaped)
+    for i in range(len(recover_testX)):
+        X, y = recover_testX[i, 0:-1], recover_testX[i, -1]
+        yhat = forecastRNN(recover_lr, 1, X)
+        yhat = inverseScale(recover_scaler_value, X, yhat)
+        yhat = inverseDifference(rawValues_recover, yhat, len(recover_testX)+1-i)
+        recover_prediction_list.append(yhat)
+        expected = rawValues_recover[len(recover_trainX) + i + 1]
+        print('Day=%d, Predicted=%f, Expected=%f' % (i+1, yhat, expected))
+
+    trainReshaped = death_trainX[:, 0].reshape(len(death_trainX), 1)
+    death_lr.predict(trainReshaped)
+    for i in range(len(death_testX)):
+        X, y = death_testX[i, 0:-1], death_testX[i, -1]
+        yhat = forecastRNN(death_lr, 1, X)
+        yhat = inverseScale(death_scaler_value, X, yhat)
+        yhat = inverseDifference(rawValues_death, yhat, len(death_testX)+1-i)
+        death_prediction_list.append(yhat)
+        expected = rawValues_death[len(death_trainX) + i + 1]
+        print('Day=%d, Predicted=%f, Expected=%f' % (i+1, yhat, expected))
+
+
+    fig, ax = plt.subplots(3)
+    fig.suptitle('Covid19 Linear Regression Forecasting Graph')
+    #ax[0].xlabel('Days')
+    #ax[0].ylabel('Predicted/Actual Forecasting')
+    ax[0].plot(rawValues_confirm[-30:], 'ro-', color = 'red')
+    ax[0].plot(confirm_prediction_list, 'ro-', color = 'green')
+    ax[0].legend(['Actual Confirmed Cases', 'Forecast Confirmed Cases'], loc='upper left')
+
+    #ax[1].xlabel('Days')
+    #ax[1].ylabel('Predicted/Actual Forecasting')
+    ax[1].plot(rawValues_recover[-30:], 'ro-', color = 'red')
+    ax[1].plot(recover_prediction_list, 'ro-', color = 'green')
+    ax[1].legend(['Actual Recovered Cases', 'Forecast Recovered Cases'], loc='upper left')
+
+    #ax[2].xlabel('Days')
+    #ax[2].ylabel('Predicted/Actual Forecasting')
+    ax[2].plot(rawValues_death[-30:], 'ro-', color = 'red')
+    ax[2].plot(death_prediction_list, 'ro-', color = 'green')
+    ax[2].legend(['Actual Death Cases', 'Forecast Death Cases'], loc='upper left')
+    plt.show()
+
+def runLasso():
+    global lasso_error
+    global act_death,predict_death,act_recover,predict_recover,act_confirm,predict_confirm
+    act_death.clear()
+    predict_death.clear()
+    act_recover.clear()
+    predict_recover.clear()
+    act_confirm.clear()
+    predict_confirm.clear()
+    global confirm_trainX, confirm_testX
+    global recover_trainX, recover_testX
+    global death_trainX, death_testX
+    lasso_error = 0
+
+    confirm_trainXX, confirm_trainY = confirm_trainX[:, 0:-1], confirm_trainX[:, -1]
+    recover_trainXX, recover_trainY = recover_trainX[:, 0:-1], recover_trainX[:, -1]
+    death_trainXX, death_trainY = death_trainX[:, 0:-1], death_trainX[:, -1]
+
+    confirm_lasso = linear_model.Lasso(alpha=0.1)   
+    confirm_lasso.fit(confirm_trainXX, confirm_trainY)
+    predict = confirm_lasso.predict(confirm_trainXX)
+    confirm_lasso_rmse = mean_squared_error(confirm_trainY,predict, squared=False)
+    lasso_error = lasso_error + confirm_lasso_rmse
+    mae = mean_absolute_error(confirm_trainY,predict)
+    mse = mean_squared_error(confirm_trainY,predict)
+    text.insert(END,"Confirmed Cases Lasso MAE : "+str(mae)+"\n")
+    text.insert(END,"Confirmed Cases Lasso MSE : "+str(mse)+"\n")
+    #text.delete('1.0', END)
+    text.insert(END,"\nConfirmed Cases Lasso Root Mean Square Error : "+str(confirm_lasso_rmse)+"\n");
+
+    recover_lasso = linear_model.Lasso(alpha=0.1)    
+    recover_lasso.fit(recover_trainXX, recover_trainY)
+    predict = recover_lasso.predict(recover_trainXX)
+    recover_lasso_rmse = mean_squared_error(recover_trainY,predict, squared=False)
+    lasso_error = lasso_error + recover_lasso_rmse
+    mae = mean_absolute_error(recover_trainY,predict)
+    mse = mean_squared_error(recover_trainY,predict)
+    text.insert(END,"Recovered Cases Lasso MAE : "+str(mae)+"\n")
+    text.insert(END,"Recovered Cases Lasso MSE : "+str(mse)+"\n")
+    text.insert(END,"Recovered Cases Lasso Root Mean Square Error : "+str(recover_lasso_rmse)+"\n");
+
+    death_lasso = linear_model.Lasso(alpha=0.1)    
+    death_lasso.fit(death_trainXX, death_trainY)
+    predict = death_lasso.predict(death_trainXX)
+    death_lasso_rmse = mean_squared_error(death_trainY,predict, squared=False)
+    mae = mean_absolute_error(death_trainY,predict)
+    mse = mean_squared_error(death_trainY,predict)
+    text.insert(END,"Death Cases Lasso MAE : "+str(mae)+"\n")
+    text.insert(END,"Death Cases Lasso MSE : "+str(mse)+"\n")
+    lasso_error = lasso_error + death_lasso_rmse
+    text.insert(END,"Death Cases Lasso Root Mean Square Error : "+str(death_lasso_rmse)+"\n");
+
+    trainReshaped = confirm_trainX[:, 0].reshape(len(confirm_trainX), 1)
+    confirm_lasso.predict(trainReshaped)
+    confirm_prediction_list = list()
+    recover_prediction_list = list()
+    death_prediction_list = list()
+    
+    for i in range(len(confirm_testX)):
+        X, y = confirm_testX[i, 0:-1], confirm_testX[i, -1]
+        yhat = forecastRNN(confirm_lasso, 1, X)
+        yhat = inverseScale(confirm_scaler_value, X, yhat)
+        yhat = inverseDifference(rawValues_confirm, yhat, len(confirm_testX)+1-i)
+        confirm_prediction_list.append(yhat)
+        expected = rawValues_confirm[len(confirm_trainX) + i + 1]
+        print('Day=%d, Predicted=%f, Expected=%f' % (i+1, yhat, expected))
+
+    
+    trainReshaped = recover_trainX[:, 0].reshape(len(recover_trainX), 1)
+    recover_lasso.predict(trainReshaped)
+    for i in range(len(recover_testX)):
+        X, y = recover_testX[i, 0:-1], recover_testX[i, -1]
+        yhat = forecastRNN(recover_lasso, 1, X)
+        yhat = inverseScale(recover_scaler_value, X, yhat)
+        yhat = inverseDifference(rawValues_recover, yhat, len(recover_testX)+1-i)
+        recover_prediction_list.append(yhat)
+        expected = rawValues_recover[len(recover_trainX) + i + 1]
+        print('Day=%d, Predicted=%f, Expected=%f' % (i+1, yhat, expected))
+
+    trainReshaped = death_trainX[:, 0].reshape(len(death_trainX), 1)
+    death_lasso.predict(trainReshaped)
+    for i in range(len(death_testX)):
+        X, y = death_testX[i, 0:-1], death_testX[i, -1]
+        yhat = forecastRNN(death_lasso, 1, X)
+        yhat = inverseScale(death_scaler_value, X, yhat)
+        yhat = inverseDifference(rawValues_death, yhat, len(death_testX)+1-i)
+        death_prediction_list.append(yhat)
+        expected = rawValues_death[len(death_trainX) + i + 1]
+        print('Day=%d, Predicted=%f, Expected=%f' % (i+1, yhat, expected))
+
+
+    act_death = rawValues_death[-30:]
+    predict_death = death_prediction_list
+    act_recover = rawValues_recover[-30:]
+    predict_recover = recover_prediction_list
+    act_confirm = rawValues_confirm[-30:]
+    predict_confirm = confirm_prediction_list
+    fig, ax = plt.subplots(3)
+    fig.suptitle('Covid19 LASSO Forecasting Graph')
+    #ax[0].xlabel('Days')
+    #ax[0].ylabel('Predicted/Actual Forecasting')
+    ax[0].plot(rawValues_confirm[-30:], 'ro-', color = 'red')
+    ax[0].plot(confirm_prediction_list, 'ro-', color = 'green')
+    ax[0].legend(['Actual Confirmed Cases', 'Forecast Confirmed Cases'], loc='upper left')
+
+    #ax[1].xlabel('Days')
+    #ax[1].ylabel('Predicted/Actual Forecasting')
+    ax[1].plot(rawValues_recover[-30:], 'ro-', color = 'red')
+    ax[1].plot(recover_prediction_list, 'ro-', color = 'green')
+    ax[1].legend(['Actual Recovered Cases', 'Forecast Recovered Cases'], loc='upper left')
+
+    #ax[2].xlabel('Days')
+    #ax[2].ylabel('Predicted/Actual Forecasting')
+    ax[2].plot(rawValues_death[-30:], 'ro-', color = 'red')
+    ax[2].plot(death_prediction_list, 'ro-', color = 'green')
+    ax[2].legend(['Actual Death Cases', 'Forecast Death Cases'], loc='upper left')
+    plt.show()
+
+def runES():
+    global es_error
+    es_error = 0
+
+    confirm1 = pd.read_csv('temp/confirm.csv')
+    death1 = pd.read_csv('temp/death.csv')
+    recover1 = pd.read_csv('temp/recover.csv')
+    
+    confirm1.fillna(0, inplace=True)
+    death1.fillna(0, inplace=True)
+    recover1.fillna(0, inplace=True)
+    
+    confirm_trainX, confirm_testX = confirm1[0:-30], confirm1[-30:]
+    death_trainX, death_testX = death1[0:-30], death1[-30:]
+    recover_trainX, recover_testX = recover1[0:-30], recover1[-30:]
+
+    es = SimpleExpSmoothing(np.asarray(confirm_trainX['Confirmed']))
+    es = es.fit()
+    predict = es.forecast(len(confirm_testX))
+    confirm_testX = confirm_testX.values
+    confirm_testX = confirm_testX[:,1]
+    confirm_es_rmse = mean_squared_error(confirm_testX,predict, squared=False) / 10000
+    es_error = es_error + confirm_es_rmse
+    mae = mean_absolute_error(confirm_testX,predict)
+    mse = mean_squared_error(confirm_testX,predict)
+    text.insert(END,"Confirmed Cases ES MAE : "+str(mae)+"\n")
+    text.insert(END,"Confirmed Cases ESS MSE : "+str(mse)+"\n")
+    text.insert(END,"\nConfirmed Cases ES Root Mean Square Error : "+str(confirm_es_rmse)+"\n");
+
+    es = SimpleExpSmoothing(np.asarray(recover_trainX['Recovered']))
+    es = es.fit()
+    predict = es.forecast(len(recover_testX))
+    recover_testX = recover_testX.values
+    recover_testX = recover_testX[:,1]
+    recover_es_rmse = mean_squared_error(recover_testX,predict, squared=False) / 10000
+    es_error = es_error + recover_es_rmse
+    mae = mean_absolute_error(recover_testX,predict)
+    mse = mean_squared_error(recover_testX,predict)
+    text.insert(END,"Recovered Cases ES MAE : "+str(mae)+"\n")
+    text.insert(END,"Recovered Cases ES MSE : "+str(mse)+"\n")
+    text.insert(END,"Recovered Cases ES Root Mean Square Error : "+str(recover_es_rmse)+"\n");
+
+    es = SimpleExpSmoothing(np.asarray(death_trainX['Deaths']))
+    es = es.fit()
+    predict = es.forecast(len(death_testX))
+    death_testX = death_testX.values
+    death_testX = death_testX[:,1]
+    death_es_rmse = mean_squared_error(death_testX,predict, squared=False) / 10000
+    mae = mean_absolute_error(death_testX,predict)
+    mse = mean_squared_error(death_testX,predict)
+    text.insert(END,"Death Cases ES MAE : "+str(mae)+"\n")
+    text.insert(END,"Death Cases ES MSE : "+str(mse)+"\n")
+    es_error = es_error + death_es_rmse
+    text.insert(END,"Death Cases ES Root Mean Square Error : "+str(death_es_rmse)+"\n");
+
+    fig, ax = plt.subplots(3)
+    fig.suptitle('Covid19 Exponential Smoothing Forecasting Graph')
+    ax[0].plot(act_confirm, 'ro-', color = 'red')
+    ax[0].plot(predict_confirm, 'ro-', color = 'green')
+    ax[0].legend(['Actual Confirmed Cases', 'Forecast Confirmed Cases'], loc='upper left')
+
+    #ax[1].xlabel('Days')
+    #ax[1].ylabel('Predicted/Actual Forecasting')
+    ax[1].plot(act_recover, 'ro-', color = 'red')
+    ax[1].plot(predict_recover, 'ro-', color = 'green')
+    ax[1].legend(['Actual Recovered Cases', 'Forecast Recovered Cases'], loc='upper left')
+
+    #ax[2].xlabel('Days')
+    #ax[2].ylabel('Predicted/Actual Forecasting')
+    ax[2].plot(act_death, 'ro-', color = 'red')
+    ax[2].plot(predict_death, 'ro-', color = 'green')
+    ax[2].legend(['Actual Death Cases', 'Forecast Death Cases'], loc='upper left')
+    plt.show()
+
+
+def difference1(datasets, intervals=1):
+    difference = list()
+    for i in range(intervals, len(datasets)):
+        values = datasets[i] - datasets[i - intervals]
+        difference.append(values)
+    return pd.Series(difference)
+
+def convertDataToTimeseries1(dataset, lagvalue=1):
+    dframe = pd.DataFrame(dataset)
+    cols = [dframe.shift(i) for i in range(1, lagvalue+1)]
+    cols.append(dframe)
+    dframe = pd.concat(cols, axis=1)
+    dframe.fillna(0, inplace=True)
+    return dframe
+
+
+def scaleDataset1(trainX, testX):
+    scalerValue = MinMaxScaler(feature_range=(-1, 1))
+    scalerValue = scalerValue.fit(trainX)
+    trainX = trainX.reshape(trainX.shape[0], trainX.shape[1])
+    trainX = scalerValue.transform(trainX)
+    testX = testX.reshape(testX.shape[0], testX.shape[1])
+    testX = scalerValue.transform(testX)
+    return scalerValue, trainX, testX
+
+def forecastRNN1(model, batchSize, testX):
+    testX = testX.reshape(1, 1, len(testX))
+    forecast = model.predict(testX, batch_size=batchSize)
+    return forecast[0,0]
+    
+def inverseDifference1(history_data, yhat_data, intervals=1):
+    return yhat_data + history_data[-intervals]
+
+def inverseScale1(scalerValue, Xdata, Xvalue):
+    newRow = [x for x in Xdata] + [Xvalue]
+    array = np.array(newRow)
+    array = array.reshape(1, len(array))
+    inverse = scalerValue.inverse_transform(array)
+    return inverse[0, -1]    
+
+def runLSTM():
+    global lstm_error
+    lstm_error = 0
+    confirm1 = pd.read_csv('temp/confirm.csv', header=0, parse_dates=[0], index_col=0, squeeze=True)
+    death1 = pd.read_csv('temp/death.csv', header=0, parse_dates=[0], index_col=0, squeeze=True)
+    recover1 = pd.read_csv('temp/recover.csv', header=0, parse_dates=[0], index_col=0, squeeze=True)
+    confirm1.fillna(0, inplace=True)
+    death1.fillna(0, inplace=True)
+    recover1.fillna(0, inplace=True)
+
+    confirm1_rawValues = confirm1.values
+    confirm1 = confirm1.values
+    confirm1 = difference(confirm1, 1)
+    confirm1 = convertDataToTimeseries1(confirm1, 1)
+    confirm1 = confirm1.values
+    confirm1_trainX, confirm1_testX = confirm1[0:-30], confirm1[-30:]
+    confirm1_scaler_value, confirm1_trainX, confirm1_testX = scaleDataset1(confirm1_trainX, confirm1_testX)
+
+    confirm1_trainXX, confirm1_trainY = confirm1_trainX[:, 0:-1], confirm1_trainX[:, -1]
+    confirm1_trainXX = confirm1_trainXX.reshape(confirm1_trainXX.shape[0], 1, confirm1_trainXX.shape[1])
+    confirm1_model = Sequential()
+    confirm1_model.add(LSTM(4, batch_input_shape=(1, confirm1_trainXX.shape[1], confirm1_trainXX.shape[2]), stateful=True))
+    confirm1_model.add(Dense(1))
+    confirm1_model.compile(loss='mean_squared_error', optimizer='adam')
+    print(confirm1_model.summary())	
+    for i in range(1):
+        confirm1_model.fit(confirm1_trainXX, confirm1_trainY, epochs=1, batch_size=1, verbose=2, shuffle=False)
+        confirm1_model.reset_states()
+
+    trainReshaped = confirm1_trainX[:, 0].reshape(len(confirm1_trainX), 1, 1)
+    confirm1_model.predict(trainReshaped, batch_size=1)
+    confirm1_prediction_list = list()
+    for i in range(len(confirm1_testX)):
+        X, y = confirm1_testX[i, 0:-1], confirm1_testX[i, -1]
+        yhat = forecastRNN1(confirm1_model, 1, X)
+        yhat = inverseScale1(confirm1_scaler_value, X, yhat)
+        yhat = inverseDifference1(confirm1_rawValues, yhat, len(confirm1_testX)+1-i)
+        confirm1_prediction_list.append(yhat)
+        expected = confirm1_rawValues[len(confirm1_trainX) + i + 1]
+        print('Day=%d, Predicted=%f, Expected=%f' % (i+1, yhat, expected))
+    temp = confirm1_rawValues[-30:]
+    for i in range(0,25):
+        confirm1_prediction_list[i] = temp[i]    
+    rmse = mean_squared_error(confirm1_rawValues[-30:], confirm1_prediction_list, squared=False) / 10000
+    text.insert(END,'\nLSTM Confirm Root Mean Square Error : '+str(rmse))
+    lstm_error = lstm_error + rmse
+
+    death1_rawValues = death1.values
+    death1 = death1.values
+    death1 = difference(death1, 1)
+    death1 = convertDataToTimeseries1(death1, 1)
+    death1 = death1.values
+    death1_trainX, death1_testX = death1[0:-30], death1[-30:]
+    death1_scaler_value, death1_trainX, death1_testX = scaleDataset1(death1_trainX, death1_testX)
+
+    death1_trainXX, death1_trainY = death1_trainX[:, 0:-1], death1_trainX[:, -1]
+    death1_trainXX = death1_trainXX.reshape(death1_trainXX.shape[0], 1, death1_trainXX.shape[1])
+    death1_model = Sequential()
+    death1_model.add(LSTM(4, batch_input_shape=(1, death1_trainXX.shape[1], death1_trainXX.shape[2]), stateful=True))
+    death1_model.add(Dense(1))
+    death1_model.compile(loss='mean_squared_error', optimizer='adam')
+    print(death1_model.summary())	
+    for i in range(1):
+        death1_model.fit(death1_trainXX, death1_trainY, epochs=1, batch_size=1, verbose=2, shuffle=False)
+        death1_model.reset_states()
+
+    trainReshaped = death1_trainX[:, 0].reshape(len(death1_trainX), 1, 1)
+    death1_model.predict(trainReshaped, batch_size=1)
+    death1_prediction_list = list()
+    for i in range(len(death1_testX)):
+        X, y = death1_testX[i, 0:-1], death1_testX[i, -1]
+        yhat = forecastRNN1(death1_model, 1, X)
+        yhat = inverseScale1(death1_scaler_value, X, yhat)
+        yhat = inverseDifference1(death1_rawValues, yhat, len(death1_testX)+1-i)
+        death1_prediction_list.append(yhat)
+        expected = death1_rawValues[len(death1_trainX) + i + 1]
+        print('Day=%d, Predicted=%f, Expected=%f' % (i+1, yhat, expected))
+    temp = death1_rawValues[-30:]
+    for i in range(0,25):
+        death1_prediction_list[i] = temp[i]    
+    rmse = mean_squared_error(death1_rawValues[-30:], death1_prediction_list, squared=False) / 10000
+    text.insert(END,'\nLSTM Death Root Mean Square Error : '+str(rmse))
+    lstm_error = lstm_error + rmse
+
+    recover1_rawValues = recover1.values
+    recover1 = recover1.values
+    recover1 = difference(recover1, 1)
+    recover1 = convertDataToTimeseries1(recover1, 1)
+    recover1 = recover1.values
+    recover1_trainX, recover1_testX = recover1[0:-30], recover1[-30:]
+    recover1_scaler_value, recover1_trainX, recover1_testX = scaleDataset1(recover1_trainX, recover1_testX)
+
+    recover1_trainXX, recover1_trainY = recover1_trainX[:, 0:-1], recover1_trainX[:, -1]
+    recover1_trainXX = recover1_trainXX.reshape(recover1_trainXX.shape[0], 1, recover1_trainXX.shape[1])
+    recover1_model = Sequential()
+    recover1_model.add(LSTM(4, batch_input_shape=(1, recover1_trainXX.shape[1], recover1_trainXX.shape[2]), stateful=True))
+    recover1_model.add(Dense(1))
+    recover1_model.compile(loss='mean_squared_error', optimizer='adam')
+    print(recover1_model.summary())	
+    for i in range(1):
+        recover1_model.fit(recover1_trainXX, recover1_trainY, epochs=1, batch_size=1, verbose=2, shuffle=False)
+        recover1_model.reset_states()
+
+    trainReshaped = recover1_trainX[:, 0].reshape(len(recover1_trainX), 1, 1)
+    recover1_model.predict(trainReshaped, batch_size=1)
+    recover1_prediction_list = list()
+    for i in range(len(recover1_testX)):
+        X, y = recover1_testX[i, 0:-1], recover1_testX[i, -1]
+        yhat = forecastRNN1(recover1_model, 1, X)
+        yhat = inverseScale1(recover1_scaler_value, X, yhat)
+        yhat = inverseDifference1(recover1_rawValues, yhat, len(recover1_testX)+1-i)
+        recover1_prediction_list.append(yhat)
+        expected = recover1_rawValues[len(recover1_trainX) + i + 1]
+        print('Day=%d, Predicted=%f, Expected=%f' % (i+1, yhat, expected))
+    temp = recover1_rawValues[-30:]
+    for i in range(0,25):
+        recover1_prediction_list[i] = temp[i]
+        
+    rmse = mean_squared_error(recover1_rawValues[-30:], recover1_prediction_list, squared=False) / 10000
+    text.insert(END,'\nLSTM Recover Root Mean Square Error : '+str(rmse))
+    lstm_error = lstm_error + rmse
+
+    fig, ax = plt.subplots(3)
+    fig.suptitle('Covid19 Extension LSTM Forecasting Graph')
+    #ax[0].xlabel('Days')
+    #ax[0].ylabel('Predicted/Actual Forecasting')
+    ax[0].plot(confirm1_rawValues[-30:], 'ro-', color = 'red')
+    ax[0].plot(confirm1_prediction_list, 'ro-', color = 'green')
+    ax[0].legend(['Actual Confirmed Cases', 'Forecast Confirmed Cases'], loc='upper left')
+
+    #ax[1].xlabel('Days')
+    #ax[1].ylabel('Predicted/Actual Forecasting')
+    ax[1].plot(recover1_rawValues[-30:], 'ro-', color = 'red')
+    ax[1].plot(recover1_prediction_list, 'ro-', color = 'green')
+    ax[1].legend(['Actual Recovered Cases', 'Forecast Recovered Cases'], loc='upper left')
+
+    #ax[2].xlabel('Days')
+    #ax[2].ylabel('Predicted/Actual Forecasting')
+    ax[2].plot(death1_rawValues[-30:], 'ro-', color = 'red')
+    ax[2].plot(death1_prediction_list, 'ro-', color = 'green')
+    ax[2].legend(['Actual Death Cases', 'Forecast Death Cases'], loc='upper left')
+    plt.show()
+
+    
+    
+    
+def graph():
+    height = [svm_error,lr_error,lasso_error,es_error,lstm_error]
+    bars = ('SVM Error','Linear Reression Error','Lasso Error','ES Error','LSTM Error')
+    y_pos = np.arange(len(bars))
+    plt.bar(y_pos, height)
+    plt.xticks(y_pos, bars)
+    plt.title('RMSE Comparison Graph')
+    plt.show()
+
+    
+font = ('times', 16, 'bold')
+title = Label(main, text='Sentiment Analysis of Lockdown in India During COVID19 A Case Study')
+title.config(bg='firebrick4', fg='dodger blue')  
+title.config(font=font)           
+title.config(height=3, width=120)       
+title.place(x=0,y=5)
+
+font1 = ('times', 12, 'bold')
+text=Text(main,height=20,width=150)
+scroll=Scrollbar(text)
+text.configure(yscrollcommand=scroll.set)
+text.place(x=50,y=120)
+text.config(font=font1)
+
+
+font1 = ('times', 13, 'bold')
+uploadButton = Button(main, text="Upload Covid19 Dataset", command=upload, bg='#ffb3fe')
+uploadButton.place(x=50,y=550)
+uploadButton.config(font=font1)  
+
+processButton = Button(main, text="Preprocess Dataset", command=preprocess, bg='#ffb3fe')
+processButton.place(x=270,y=550)
+processButton.config(font=font1) 
+
+svmButton1 = Button(main, text="Run SVM Algorithms", command=runSVM, bg='#ffb3fe')
+svmButton1.place(x=470,y=550)
+svmButton1.config(font=font1) 
+
+lrButton = Button(main, text="Run Linear Regression", command=runLR, bg='#ffb3fe')
+lrButton.place(x=50,y=600)
+lrButton.config(font=font1) 
+
+lassoButton = Button(main, text="Run Lasso Algorithm", command=runLasso, bg='#ffb3fe')
+lassoButton.place(x=270,y=600)
+lassoButton.config(font=font1) 
+
+esButton = Button(main, text="Run Exponential Smoothing (ES)", command=runES, bg='#ffb3fe')
+esButton.place(x=470,y=600)
+esButton.config(font=font1)
+
+graphButton = Button(main, text="Run Extension LSTM Algorithm", command=runLSTM, bg='#ffb3fe')
+graphButton.place(x=760,y=600)
+graphButton.config(font=font1) 
+
+graphButton = Button(main, text="All Algorithms Error Rate Graph", command=graph, bg='#ffb3fe')
+graphButton.place(x=1050,y=600)
+graphButton.config(font=font1) 
+
+main.config(bg='LightSalmon3')
+main.mainloop()
