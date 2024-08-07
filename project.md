@@ -123,4 +123,40 @@ In summary, sentiment analysis provides valuable insights into public perception
 
 In short, the project helps understand public opinion, supports better decisions, and improves communication during the COVID-19 lockdown.
 
+# More deeply into our Algorithms
+
+Here’s a simple explanation of each algorithm used in your project, including LSTM and RMSE:
+
+### 1. **Linear Regression (LR)**
+- **What It Is**: A method that tries to find the straight line (or "linear" relationship) that best fits a set of data points.
+- **How It Works**: Imagine you have data on the number of COVID-19 cases over time. Linear regression draws a straight line through this data to predict future cases.
+- **Example**: If you know the number of cases over the past week, LR helps you estimate how many cases there might be next week based on that trend.
+
+### 2. **Least Absolute Shrinkage and Selection Operator (LASSO)**
+- **What It Is**: A variation of linear regression that not only finds a line that fits the data but also helps in selecting the most important factors by reducing the influence of less important ones.
+- **How It Works**: LASSO tries to find a line like linear regression but also simplifies the model by "shrinking" or reducing the effect of less relevant factors.
+- **Example**: If you’re predicting COVID-19 cases using multiple factors (like weather, mobility, etc.), LASSO helps focus on the most relevant factors and ignores less important ones.
+
+### 3. **Support Vector Machine (SVM)**
+- **What It Is**: A method that finds the best boundary or line that separates different groups in your data.
+- **How It Works**: For predicting COVID-19 cases, SVM tries to find a line or curve that best separates cases from non-cases. It looks for the boundary that has the largest gap between different groups.
+- **Example**: If you have data on people who have tested positive and those who haven’t, SVM finds the best line to distinguish between these two groups.
+
+### 4. **Exponential Smoothing (ES)**
+- **What It Is**: A forecasting method that gives more weight to recent data while gradually reducing the weight of older data.
+- **How It Works**: ES smooths out the data to predict future values by averaging recent observations more heavily. It’s especially useful when data changes over time.
+- **Example**: If you want to forecast the number of COVID-19 cases tomorrow, ES gives more importance to recent daily case numbers than to older data.
+
+### 5. **Long Short-Term Memory (LSTM)**
+- **What It Is**: A type of neural network designed to handle and remember patterns in data over long periods.
+- **How It Works**: LSTM networks are good at remembering information for a long time, which helps in predicting trends based on past data. They’re like a memory system for sequential data.
+- **Example**: To predict future COVID-19 case trends based on past data, LSTM can remember and use information from long sequences of daily case numbers.
+
+### 6. **Root Mean Square Error (RMSE)**
+- **What It Is**: A measure of how well a model’s predictions match the actual data.
+- **How It Works**: RMSE calculates the average of the squared differences between predicted and actual values, then takes the square root to give a more understandable number.
+- **Example**: If a model predicts the number of COVID-19 cases, RMSE tells you how far off these predictions are from the actual number of cases. Lower RMSE means better predictions.
+
+In summary, these algorithms and metrics help in making and evaluating predictions about COVID-19 cases, using different approaches to handle and analyze the data effectively.
+
 
