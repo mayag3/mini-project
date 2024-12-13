@@ -6,7 +6,7 @@ TOPIC :India’s Lockdown During COVID-19: Analyzing Public Sentiment [REMEMBER 
 
 
 # Maya's part:
-**Abstract:**
+***Abstract:***
 **Intro:**
 *Sentiment Analysis** is a technique used to determine the emotional tone behind a body of text. It involves analyzing text to classify it into categories like positive, negative, or neutral. This analysis helps understand how people feel about a particular topic or issue based on their written words.
 
