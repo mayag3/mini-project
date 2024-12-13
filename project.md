@@ -6,7 +6,7 @@ TOPIC :India’s Lockdown During COVID-19: Analyzing Public Sentiment [REMEMBER 
 
 
 # Maya's part:
-***Abstract:***
+## Abstract:
 
 This study focuses on using machine learning (ML) models to predict COVID-19 trends, aiding in effective decision-making during the pandemic. It evaluates four popular forecasting models:
 
@@ -16,7 +16,7 @@ Support Vector Machine (SVM) - A more complex model designed to find patterns in
 Exponential Smoothing (ES) - A model that prioritizes recent data, making it highly effective for short-term forecasting.
 These models were tested to predict three key metrics—new COVID-19 cases, deaths, and recoveries—over a 10-day period. Results showed that exponential smoothing (ES) was the most reliable, providing accurate forecasts for all metrics.
 
-**Intro:**
+## Intro:
 COVID-19, first identified in Wuhan in 2019, spread rapidly worldwide, becoming a major global threat. This study focuses on forecasting COVID-19 cases, deaths, and recoveries over 10 days to help manage the pandemic.
 
 Four ML models are used: linear regression (LR), LASSO, support vector machine (SVM), and exponential smoothing (ES). The models are trained on COVID-19 data from Johns Hopkins, using 85% of the data for training and 15% for testing.
@@ -49,7 +49,7 @@ ML forecasting is crucial for pandemic management.
   - Explores robust techniques for predicting future behavior.
 
 
-#### Objectives
+## Objectives
 
 ### Planning and Preparation:
 Forecasting helps individuals and organizations plan and prepare for future events. For example, predicting the number of COVID-19 cases can help hospitals prepare resources and allocate staff accordingly.
@@ -75,7 +75,7 @@ Forecasting provides valuable information to the public, helping them make infor
 
 
 
-#### Existing models:
+## Existing models:
 In 2020, when machine learning (ML) was newly applied to COVID-19 prediction, several specific problems with existing solutions were evident:
 
 1. **Immaturity of ML Models**:
@@ -114,7 +114,7 @@ These issues highlight the challenges faced in using ML for COVID-19 prediction 
 # Mounika's Part:
 
 
-#### Proposed System:
+## Proposed System:
 - This study uses machine learning (ML) to predict COVID-19 outcomes: new cases, deaths, and recoveries over 10 days.  
 - Four models were tested:  
   - Linear Regression (LR)  
@@ -128,7 +128,7 @@ These issues highlight the challenges faced in using ML for COVID-19 prediction 
 - The study shows ML models, especially ES, are useful for managing the COVID-19 pandemic.  
 
 
-#### Advantages of proposed system:
+## Advantages of proposed system:
 
 
 **Advantages of the Project:**
@@ -170,9 +170,21 @@ These metrics help evaluate how well the models perform and ensure they make acc
 
 
 
-#### System architecture:
+## System architecture:
 ![image](https://github.com/user-attachments/assets/e3af5f20-2e0d-456c-abe2-2b4ca5bb2144)
+This diagram shows how **Sentiment Analysis** works in two main steps: **Training** and **Prediction**:
 
+### **1. Training Phase**  
+   - **Input Text**: The system uses labeled text data (with tags like Positive, Neutral, Negative).  
+   - **Feature Extraction**: Important patterns and characteristics are extracted from the text.  
+   - **Machine Learning Algorithm**: These features are fed into an algorithm to create a model. This model learns how to classify text based on sentiment.
+
+### **2. Prediction Phase**  
+   - **Input Text**: New, unlabeled text is processed.  
+   - **Feature Extraction**: The same extraction process is applied to find patterns in the new text.  
+   - **Classified Model**: The trained model predicts the sentiment of the text and assigns a tag (Positive, Neutral, or Negative).
+
+In essence, the system learns from tagged examples and then applies that learning to classify new data.
 
 # Rashmitha's part:
 
@@ -198,9 +210,7 @@ Example: To forecast the number of recoveries over the next week, ES will focus 
 
 
 
-
-
-*
+## Results
 
 
 
