@@ -1,29 +1,30 @@
 
 # Brief of Mini project
 
-TOPIC :SENTIMENT ANALYSIS OF LOCKDOWN IN INDIA DURING COVID 19 A CASE STUDY
+TOPIC :India’s Lockdown During COVID-19: Analyzing Public Sentiment [REMEMBER THIS TITLE]
 
 
-# Algorithms used
 
-### Linear Regression (LR)
-#### Definition: Linear Regression finds the best straight line that predicts an outcome based on one or more input variables.
-Example: If you want to predict the number of new COVID-19 cases based on past data, Linear Regression will fit a line to the historical data points to estimate future cases.
+# Maya's part:
+####Abstract
+####Intro
+*Sentiment Analysis** is a technique used to determine the emotional tone behind a body of text. It involves analyzing text to classify it into categories like positive, negative, or neutral. This analysis helps understand how people feel about a particular topic or issue based on their written words.
 
-### Least Absolute Shrinkage and Selection Operator (LASSO)
-#### Definition: LASSO is a type of regression that not only predicts outcomes but also selects the most important variables by reducing the impact of less important ones.
-Example: To predict death rates, LASSO will use past data but focus on the most significant factors, such as age or underlying health conditions, and ignore less relevant ones.
+**Why Use Sentiment Analysis in This Project:**
 
-### Support Vector Machine (SVM)
-#### Definition: SVM finds the best boundary (or hyperplane) that separates different classes of data, often used for classification tasks.
- Example: To classify whether a region will have a high or low number of COVID-19 cases, SVM creates a boundary to distinguish between these categories based on factors like population density and previous case numbers.
+1. **Understand Public Opinion**: It helps gauge how people feel about the lockdown measures during COVID-19, whether they support or oppose them, and how their feelings change over time.
 
-### Exponential Smoothing (ES)
-#### Definition: Exponential Smoothing gives more weight to recent observations to predict future values, making it good for time-series data.
-Example: To forecast the number of recoveries over the next week, ES will focus more on recent recovery rates and use them to predict future recoveries, adjusting quickly to recent trends.
+2. **Identify Key Issues**: By analyzing sentiments, we can identify common concerns or positive feedback about the lockdown, which can guide policymakers in making informed decisions.
 
-# Why are we forcasting covid 19 data(purpose of our project)
+3. **Track Changes Over Time**: Sentiment analysis can reveal how public opinion evolves with changing circumstances, such as new lockdown measures or updates on the pandemic.
 
+4. **Enhance Communication**: Understanding public sentiment can help in crafting messages and policies that better address people's concerns and improve compliance with health guidelines.
+
+5. **Support Decision-Making**: Insights from sentiment analysis can assist governments and organizations in evaluating the effectiveness of their communication strategies and public health measures.
+
+In summary, sentiment analysis provides valuable insights into public perceptions and reactions, which is crucial for managing and improving responses to the COVID-19 pandemic.
+####Literature survey
+####Objectives
 ### Planning and Preparation:
 Forecasting helps individuals and organizations plan and prepare for future events. For example, predicting the number of COVID-19 cases can help hospitals prepare resources and allocate staff accordingly.
 
@@ -46,8 +47,9 @@ Forecasting supports long-term strategic planning. Understanding potential futur
 Forecasting provides valuable information to the public, helping them make informed choices and understand potential future developments.
 
 
-# What was the problem with existing solution?
 
+
+####Existing models
 In 2020, when machine learning (ML) was newly applied to COVID-19 prediction, several specific problems with existing solutions were evident:
 
 1. **Immaturity of ML Models**:
@@ -83,27 +85,12 @@ These issues highlight the challenges faced in using ML for COVID-19 prediction 
 
 
 
-# What is Sentiment Analysis and why do we use it?
-
-**Sentiment Analysis** is a technique used to determine the emotional tone behind a body of text. It involves analyzing text to classify it into categories like positive, negative, or neutral. This analysis helps understand how people feel about a particular topic or issue based on their written words.
-
-**Why Use Sentiment Analysis in This Project:**
-
-1. **Understand Public Opinion**: It helps gauge how people feel about the lockdown measures during COVID-19, whether they support or oppose them, and how their feelings change over time.
-
-2. **Identify Key Issues**: By analyzing sentiments, we can identify common concerns or positive feedback about the lockdown, which can guide policymakers in making informed decisions.
-
-3. **Track Changes Over Time**: Sentiment analysis can reveal how public opinion evolves with changing circumstances, such as new lockdown measures or updates on the pandemic.
-
-4. **Enhance Communication**: Understanding public sentiment can help in crafting messages and policies that better address people's concerns and improve compliance with health guidelines.
-
-5. **Support Decision-Making**: Insights from sentiment analysis can assist governments and organizations in evaluating the effectiveness of their communication strategies and public health measures.
-
-In summary, sentiment analysis provides valuable insights into public perceptions and reactions, which is crucial for managing and improving responses to the COVID-19 pandemic.
+#Mounika's Part:
 
 
+####Proposed System
+####Advantages of proposed system
 
-# The advantages of our project
 
 **Advantages of the Project:**
 
@@ -125,38 +112,42 @@ In short, the project helps understand public opinion, supports better decisions
 
 # More deeply into our Algorithms
 
-Here’s a simple explanation of each algorithm used in your project, including LSTM and RMSE:
+####System architecture
+![image](https://github.com/user-attachments/assets/e3af5f20-2e0d-456c-abe2-2b4ca5bb2144)
 
-### 1. **Linear Regression (LR)**
-- **What It Is**: A method that tries to find the straight line (or "linear" relationship) that best fits a set of data points.
-- **How It Works**: Imagine you have data on the number of COVID-19 cases over time. Linear regression draws a straight line through this data to predict future cases.
-- **Example**: If you know the number of cases over the past week, LR helps you estimate how many cases there might be next week based on that trend.
 
-### 2. **Least Absolute Shrinkage and Selection Operator (LASSO)**
-- **What It Is**: A variation of linear regression that not only finds a line that fits the data but also helps in selecting the most important factors by reducing the influence of less important ones.
-- **How It Works**: LASSO tries to find a line like linear regression but also simplifies the model by "shrinking" or reducing the effect of less relevant factors.
-- **Example**: If you’re predicting COVID-19 cases using multiple factors (like weather, mobility, etc.), LASSO helps focus on the most relevant factors and ignores less important ones.
+#Rashmitha's part:
 
-### 3. **Support Vector Machine (SVM)**
-- **What It Is**: A method that finds the best boundary or line that separates different groups in your data.
-- **How It Works**: For predicting COVID-19 cases, SVM tries to find a line or curve that best separates cases from non-cases. It looks for the boundary that has the largest gap between different groups.
-- **Example**: If you have data on people who have tested positive and those who haven’t, SVM finds the best line to distinguish between these two groups.
+##Description of these
 
-### 4. **Exponential Smoothing (ES)**
-- **What It Is**: A forecasting method that gives more weight to recent data while gradually reducing the weight of older data.
-- **How It Works**: ES smooths out the data to predict future values by averaging recent observations more heavily. It’s especially useful when data changes over time.
-- **Example**: If you want to forecast the number of COVID-19 cases tomorrow, ES gives more importance to recent daily case numbers than to older data.
 
-### 5. **Long Short-Term Memory (LSTM)**
-- **What It Is**: A type of neural network designed to handle and remember patterns in data over long periods.
-- **How It Works**: LSTM networks are good at remembering information for a long time, which helps in predicting trends based on past data. They’re like a memory system for sequential data.
-- **Example**: To predict future COVID-19 case trends based on past data, LSTM can remember and use information from long sequences of daily case numbers.
 
-### 6. **Root Mean Square Error (RMSE)**
-- **What It Is**: A measure of how well a model’s predictions match the actual data.
-- **How It Works**: RMSE calculates the average of the squared differences between predicted and actual values, then takes the square root to give a more understandable number.
-- **Example**: If a model predicts the number of COVID-19 cases, RMSE tells you how far off these predictions are from the actual number of cases. Lower RMSE means better predictions.
+### Linear Regression (LR)
+#### Definition: Linear Regression finds the best straight line that predicts an outcome based on one or more input variables.
+Example: If you want to predict the number of new COVID-19 cases based on past data, Linear Regression will fit a line to the historical data points to estimate future cases.
 
-In summary, these algorithms and metrics help in making and evaluating predictions about COVID-19 cases, using different approaches to handle and analyze the data effectively.
+### Least Absolute Shrinkage and Selection Operator (LASSO)
+#### Definition: LASSO is a type of regression that not only predicts outcomes but also selects the most important variables by reducing the impact of less important ones.
+Example: To predict death rates, LASSO will use past data but focus on the most significant factors, such as age or underlying health conditions, and ignore less relevant ones.
+
+### Support Vector Machine (SVM)
+#### Definition: SVM finds the best boundary (or hyperplane) that separates different classes of data, often used for classification tasks.
+ Example: To classify whether a region will have a high or low number of COVID-19 cases, SVM creates a boundary to distinguish between these categories based on factors like population density and previous case numbers.
+
+### Exponential Smoothing (ES)
+#### Definition: Exponential Smoothing gives more weight to recent observations to predict future values, making it good for time-series data.
+Example: To forecast the number of recoveries over the next week, ES will focus more on recent recovery rates and use them to predict future recoveries, adjusting quickly to recent trends.
+
+
+
+
+
+*
+
+
+
+
+
+
 
 
