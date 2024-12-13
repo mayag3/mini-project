@@ -6,8 +6,8 @@ TOPIC :India’s Lockdown During COVID-19: Analyzing Public Sentiment [REMEMBER 
 
 
 # Maya's part:
-#### Abstract
-#### Intro
+#### Abstract:
+#### Intro:
 *Sentiment Analysis** is a technique used to determine the emotional tone behind a body of text. It involves analyzing text to classify it into categories like positive, negative, or neutral. This analysis helps understand how people feel about a particular topic or issue based on their written words.
 
 **Why Use Sentiment Analysis in This Project:**
@@ -49,7 +49,7 @@ Forecasting provides valuable information to the public, helping them make infor
 
 
 
-#### Existing models
+#### Existing models:
 In 2020, when machine learning (ML) was newly applied to COVID-19 prediction, several specific problems with existing solutions were evident:
 
 1. **Immaturity of ML Models**:
@@ -88,8 +88,8 @@ These issues highlight the challenges faced in using ML for COVID-19 prediction 
 # Mounika's Part:
 
 
-#### Proposed System
-#### Advantages of proposed system
+#### Proposed System:
+#### Advantages of proposed system:
 
 
 **Advantages of the Project:**
@@ -110,15 +110,15 @@ These issues highlight the challenges faced in using ML for COVID-19 prediction 
 
 In short, the project helps understand public opinion, supports better decisions, and improves communication during the COVID-19 lockdown.
 
-# More deeply into our Algorithms
 
-#### System architecture
+
+#### System architecture:
 ![image](https://github.com/user-attachments/assets/e3af5f20-2e0d-456c-abe2-2b4ca5bb2144)
 
 
 # Rashmitha's part:
 
-## Description of these
+## Description of these:
 
 
 
