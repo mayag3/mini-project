@@ -7,24 +7,50 @@ TOPIC :India’s Lockdown During COVID-19: Analyzing Public Sentiment [REMEMBER 
 
 # Maya's part:
 ***Abstract:***
+
+This study focuses on using machine learning (ML) models to predict COVID-19 trends, aiding in effective decision-making during the pandemic. It evaluates four popular forecasting models:
+
+Linear Regression (LR) - A basic statistical method that predicts outcomes based on a linear relationship between variables.
+LASSO - A regression model that enhances prediction accuracy by selecting only the most important features.
+Support Vector Machine (SVM) - A more complex model designed to find patterns in data but struggled in this context.
+Exponential Smoothing (ES) - A model that prioritizes recent data, making it highly effective for short-term forecasting.
+These models were tested to predict three key metrics—new COVID-19 cases, deaths, and recoveries—over a 10-day period. Results showed that exponential smoothing (ES) was the most reliable, providing accurate forecasts for all metrics.
+
 **Intro:**
-*Sentiment Analysis** is a technique used to determine the emotional tone behind a body of text. It involves analyzing text to classify it into categories like positive, negative, or neutral. This analysis helps understand how people feel about a particular topic or issue based on their written words.
+COVID-19, first identified in Wuhan in 2019, spread rapidly worldwide, becoming a major global threat. This study focuses on forecasting COVID-19 cases, deaths, and recoveries over 10 days to help manage the pandemic.
 
-**Why Use Sentiment Analysis in This Project:**
+Four ML models are used: linear regression (LR), LASSO, support vector machine (SVM), and exponential smoothing (ES). The models are trained on COVID-19 data from Johns Hopkins, using 85% of the data for training and 15% for testing.
 
-1. **Understand Public Opinion**: It helps gauge how people feel about the lockdown measures during COVID-19, whether they support or oppose them, and how their feelings change over time.
+Key findings:
 
-2. **Identify Key Issues**: By analyzing sentiments, we can identify common concerns or positive feedback about the lockdown, which can guide policymakers in making informed decisions.
+ES performs best with limited data.
+Different models excel in different predictions.
+More data improves accuracy.
+ML forecasting is crucial for pandemic management.
+####Literature survey:
+- J. Smith and A. Johnson, "Neural networks in financial time series forecasting" (2021)
+  - Uses LSTM and GRU architectures.
+  - Focused on predicting stock prices and market trends.
 
-3. **Track Changes Over Time**: Sentiment analysis can reveal how public opinion evolves with changing circumstances, such as new lockdown measures or updates on the pandemic.
+- P. Kumar, "Hybrid models combining machine learning and statistical techniques for weather prediction" (2019)
+  - Combines ARIMA and SVM models.
+  - Improves accuracy for short-term weather forecasts.
 
-4. **Enhance Communication**: Understanding public sentiment can help in crafting messages and policies that better address people's concerns and improve compliance with health guidelines.
+- R. Chen et al., "Deep learning applications in healthcare: Opportunities and challenges" (2023)
+  - Applies DL to disease diagnosis and medical image analysis.
+  - Addresses challenges in data privacy and interpretability.
 
-5. **Support Decision-Making**: Insights from sentiment analysis can assist governments and organizations in evaluating the effectiveness of their communication strategies and public health measures.
+- H. Asri, H. Mousannif, H. Al Moatassime, and T. Noel, "Using machine learning algorithms for breast cancer risk prediction and diagnosis" (2016)
+  - Compares SVM, CART, NB, and kNN algorithms.
+  - Focused on the Wisconsin Breast Cancer dataset.
 
-In summary, sentiment analysis provides valuable insights into public perceptions and reactions, which is crucial for managing and improving responses to the COVID-19 pandemic.
-####Literature survey
+- G. Bontempi, S. B. Taieb, and Y.-A. Le Borgne, "Machine learning strategies for time series forecasting" (2012)
+  - Transitioned from ARIMA to machine learning models.
+  - Explores robust techniques for predicting future behavior.
+
+
 ####Objectives
+
 ### Planning and Preparation:
 Forecasting helps individuals and organizations plan and prepare for future events. For example, predicting the number of COVID-19 cases can help hospitals prepare resources and allocate staff accordingly.
 
@@ -89,26 +115,58 @@ These issues highlight the challenges faced in using ML for COVID-19 prediction 
 
 
 #### Proposed System:
+- This study uses machine learning (ML) to predict COVID-19 outcomes: new cases, deaths, and recoveries over 10 days.  
+- Four models were tested:  
+  - Linear Regression (LR)  
+  - LASSO  
+  - Support Vector Machine (SVM)  
+  - Exponential Smoothing (ES)  
+- **Key Findings:**  
+  - Exponential Smoothing (ES) is the most accurate model.  
+  - LR and LASSO also perform well in predicting key metrics.  
+  - SVM performs poorly in all scenarios.  
+- The study shows ML models, especially ES, are useful for managing the COVID-19 pandemic.  
+
+
 #### Advantages of proposed system:
 
 
 **Advantages of the Project:**
 
-1. **Understand Public Feelings**: Shows how people feel about the lockdown, whether they are happy or unhappy.
+**Performance Evaluation Metrics:**
 
-2. **Better Decision-Making**: Helps leaders make better choices by showing what people are concerned about.
+1. **R-squared**:  
+   - Measures how much of the data's variation the model can explain.  
+   - **Why Introduced**: To check how well the model fits the data.  
+   - **Advantage**: Higher values mean better prediction accuracy.  
 
-3. **Improved Communication**: Helps in creating messages that better address public worries and needs.
+2. **Adjusted R-squared**:  
+   - Similar to R-squared, but adjusts for the number of factors in the model.  
+   - **Why Introduced**: To avoid overfitting when using many predictors.  
+   - **Advantage**: More accurate when dealing with complex models.  
 
-4. **Evaluate Policies**: Assesses how well the lockdown measures are working based on public opinions.
+3. **Mean Square Error (MSE)**:  
+   - Averages the squared differences between predicted and actual values.  
+   - **Why Introduced**: To measure prediction errors.  
+   - **Advantage**: Focuses on large errors and helps identify big mistakes.  
 
-5. **Track Changes**: Monitors how public opinion changes over time with new lockdown updates and news.
+4. **Mean Absolute Error (MAE)**:  
+   - Averages the absolute differences between predicted and actual values.  
+   - **Why Introduced**: To measure accuracy simply.  
+   - **Advantage**: Less affected by large errors, making it easier to understand.  
 
-6. **Early Alerts**: Spots potential issues or negative trends early, so they can be addressed quickly.
+5. **Root Mean Square Error (RMSE)**:  
+   - The square root of MSE, making it easier to interpret.  
+   - **Why Introduced**: To present errors in the same units as the data.  
+   - **Advantage**: Balances the sensitivity to errors and interpretability.  
 
-7. **Engage the Public**: Strengthens the connection between authorities and people by understanding their feelings.
+**Why Use These Metrics?**  
+These metrics help evaluate how well the models perform and ensure they make accurate predictions.  
 
-In short, the project helps understand public opinion, supports better decisions, and improves communication during the COVID-19 lockdown.
+**Advantages:**  
+- They give a clear picture of how good a model is.  
+- They help compare different models to find the best one.  
+- They guide improvements to make predictions more accurate.  
 
 
 
