@@ -245,6 +245,14 @@ Here are concise **points for your presentation**:
 
 ## Result (Forecasting graphs)
 
+In forecasting, the **red line** represents the **actual data** (real numbers from the past or present), while the **green line** shows the **forecasted data** (predictions made by the model).
+
+- When the **red line** (actual data) closely follows the **green line** (forecast data), it means the model’s predictions are **accurate** and align well with real-world events.
+  
+- If there is a **misalignment** where the **red line** significantly differs from the **green line**, it indicates that the **predictions are wrong**. This could happen if the model didn’t account for certain factors, or if the data used for training the model wasn’t accurate or representative of the actual situation. 
+
+In short, when the red and green lines are far apart, the forecast is inaccurate, showing that the model needs improvement.
+
 ## Conclusion
 
  
