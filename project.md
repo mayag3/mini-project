@@ -49,7 +49,7 @@ ML forecasting is crucial for pandemic management.
   - Explores robust techniques for predicting future behavior.
 
 
-####Objectives
+#### Objectives
 
 ### Planning and Preparation:
 Forecasting helps individuals and organizations plan and prepare for future events. For example, predicting the number of COVID-19 cases can help hospitals prepare resources and allocate staff accordingly.
